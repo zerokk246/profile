@@ -181,7 +181,7 @@ fun test_check_owner_in_updating_profile() {
         let mut profile = test_scenario::take_from_sender<Profile>(scenario);
 
         // change sender
-        let mut ctx = tx_context::dummy();
+        let ctx = tx_context::dummy();
         assert!(profile::get_profile_owner(&profile) != ctx.sender());
 
         // should abort
@@ -190,7 +190,7 @@ fun test_check_owner_in_updating_profile() {
             option::some(utf8(b"test2")),
             option::none<String>(),
             option::none<String>(),
-            &mut ctx);
+            &ctx);
 
         test_scenario::return_to_sender(scenario, profile);
     };
@@ -224,10 +224,10 @@ fun test_check_owner_in_deleting_profile() {
         assert!(profile::get_database_profiles_len(&database) == 1, 1);
 
         // change sender
-        let mut ctx = tx_context::dummy();
+        let ctx = tx_context::dummy();
         assert!(profile::get_profile_owner(&profile) != ctx.sender());
         // should abort
-        profile::delete_profile(&mut database, profile, &mut ctx);
+        profile::delete_profile(&mut database, profile, &ctx);
         test_scenario::return_shared(database);
     };
 
