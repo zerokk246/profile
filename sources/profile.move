@@ -9,7 +9,10 @@ module profile::profile {
     use sui::table::Table;
     use sui::event::emit;
 
+    const ErrInvalidParam: u64 = 1000;
     const ErrNotProfileOwner: u64 = 1001;
+    const ErrProfileAlreadyExists: u64 = 1002;
+
 
     public struct Database has key {
         id: UID,
@@ -58,6 +61,8 @@ module profile::profile {
         ctx: &mut TxContext,
     ) {
         let sender_addr = ctx.sender();
+        assert!(!db.profiles.contains(sender_addr), ErrProfileAlreadyExists);
+
         let profile = Profile {
             id: object::new(ctx),
             name,
@@ -75,25 +80,45 @@ module profile::profile {
         emit(EventCreateProfile { database_id: object::id(db), profile_id, owner_address: sender_addr });
     }
 
+    public entry fun get_profiles(
+        db: &Database, 
+        addresses: vector<address>, 
+        _ctx: &mut TxContext): vector<address> {  
+        let len = vector::length(&addresses);
+        assert!(len > 0, ErrInvalidParam);
+
+        let mut results = vector::empty<address>();
+        let mut i = 0;
+        while ( i < len ) {
+            let addr = *vector::borrow(&addresses, i);
+            let profile_addr = *table::borrow(&db.profiles, addr);
+            results.push_back(profile_addr);
+
+            i = i + 1;
+        };
+
+        return results
+    }
+
     public entry fun update_profile(
         profile: &mut Profile,
-    mut name: Option<String>,
-    mut desc:Option<String>,
-    mut avatar: Option<String>,
-    ctx: &mut TxContext,
+        mut name: Option<String>,
+        mut desc:Option<String>,
+        mut avatar: Option<String>,
+        ctx: &mut TxContext,
     ) {
-    let sender_addr = ctx.sender();
-    assert!(sender_addr == profile.owner_address, ErrNotProfileOwner);
+        let sender_addr = ctx.sender();
+        assert!(sender_addr == profile.owner_address, ErrNotProfileOwner);
 
-    if (option::is_some<String>(& name)) {
-    profile.name = option::extract( &mut name);
-    };
-    if (option::is_some<String>(&desc)) {
-    profile.desc = option::extract( &mut desc);
-    };
-    if (option::is_some<String>(&name)) {
-    profile.avatar = option::extract( &mut avatar);
-    };
+        if (option::is_some<String>(& name)) {
+            profile.name = option::extract( &mut name);
+        };
+        if (option::is_some<String>(&desc)) {
+            profile.desc = option::extract( &mut desc);
+        };
+        if (option::is_some<String>(&name)) {
+            profile.avatar = option::extract( &mut avatar);
+        };
     }
 
     public entry fun delete_profile(

@@ -70,6 +70,50 @@ fun test_profile() {
     test_scenario::end(scenario_val);
 }
 
+#[test]
+fun test_get_profiles() {
+    let mut scenario_val = test_scenario::begin(@0x1);
+    let scenario = &mut scenario_val;
+    init_database_and_profile(scenario);
+
+    test_scenario::next_tx(scenario, @0x1);
+    {
+        let mut database = test_scenario::take_shared<Database>(scenario);
+        let mut ctx = tx_context::new_from_hint(@0x2, 0,0,0,0);
+        // create profile
+        profile::create_profile(
+            &mut database,
+            std::string::utf8(b"test2"),
+            std::string::utf8(b"desc2..."),
+            std::string::utf8(
+                b"https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png"
+            ),
+            &mut ctx,
+        );
+
+        test_scenario::return_shared(database);
+    };
+
+    test_scenario::next_tx(scenario, @0x1);
+    {
+        let database = test_scenario::take_shared<Database>(scenario);
+        let ctx = test_scenario::ctx(scenario);
+
+        let mut addresses = vector::empty<address>();
+        addresses.push_back(@0x1);
+        let _profiles = profile::get_profiles(&database, addresses,  ctx);
+        assert!(_profiles.length() == 1, 1);
+
+        addresses.push_back(@0x2);
+        let _profiles = profile::get_profiles(&database, addresses,  ctx);
+        assert!(_profiles.length() == 2, 1);
+
+        test_scenario::return_shared(database);
+    };
+
+    test_scenario::end(scenario_val);
+}
+
 #[test, expected_failure(abort_code = ::sui::test_scenario::EEmptyInventory)]
 fun test_delete_profile() {
     let mut scenario_val = test_scenario::begin(@0x1);
