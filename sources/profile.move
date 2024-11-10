@@ -42,7 +42,7 @@ module profile::profile {
 
     /* Functions */
 
-    entry fun create_database(ctx: &mut TxContext) {
+    public entry fun create_database(ctx: &mut TxContext) {
         let db = Database {
             id: object::new(ctx),
             profiles: table::new(ctx)
@@ -53,7 +53,7 @@ module profile::profile {
         emit(EventCreateDatabase { database_id });
     }
 
-    entry fun create_profile(
+    public entry fun create_profile(
         db: &mut Database,
         name: String,
         desc: String,
@@ -80,7 +80,7 @@ module profile::profile {
         emit(EventCreateProfile { database_id: object::id(db), profile_id, owner_address: sender_addr });
     }
 
-    entry fun get_profiles(
+    public entry fun get_profiles(
         db: &Database, 
         addresses: vector<address>, 
         _ctx: &mut TxContext): vector<address> {  
@@ -102,7 +102,7 @@ module profile::profile {
         return results
     }
 
-    entry fun update_profile(
+    public entry fun update_profile(
         profile: &mut Profile,
         mut name: Option<String>,
         mut desc:Option<String>,
@@ -123,7 +123,7 @@ module profile::profile {
         };
     }
 
-    entry fun delete_profile(
+    public entry fun delete_profile(
         db: &mut Database,
         profile: Profile,
         ctx: &TxContext,
