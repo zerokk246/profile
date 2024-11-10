@@ -8,6 +8,9 @@ module profile::profile {
     use sui::table;
     use sui::table::Table;
     use sui::event::emit;
+    use sui::package;
+    use sui::display;
+    use std::string::utf8;
 
     const ErrInvalidParam: u64 = 1000;
     const ErrNotProfileOwner: u64 = 1001;
@@ -138,6 +141,33 @@ module profile::profile {
     fun drop(profile: Profile) {
         let Profile { id, name: _, desc: _, avatar: _, owner_address: _ } = profile;
         object::delete(id);
+    }
+
+    public struct PROFILE has drop {}
+
+    fun init(otw: PROFILE, ctx: &mut TxContext)
+    {
+        let publisher = package::claim(otw, ctx);
+
+        let mut display = display::new_with_fields<Profile>(
+            &publisher,
+            vector[
+                utf8(b"name"),
+                utf8(b"description"),
+                utf8(b"avatar"),
+                utf8(b"creator"),
+            ], vector[
+                utf8(b"{name}"),
+                utf8(b"{desc}"), 
+                utf8(b"{avatar}"), 
+                utf8(b"Sui fan"),
+            ], ctx
+        );
+
+        display::update_version(&mut display);
+
+        transfer::public_transfer(publisher, ctx.sender());
+        transfer::public_transfer(display, ctx.sender());
     }
 
     #[test_only]
