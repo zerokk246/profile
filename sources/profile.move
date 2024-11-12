@@ -181,6 +181,13 @@ module profile::profile {
         table::remove(&mut db.profiles, sender_addr);
         drop(profile);
     }
+
+    public fun withdraw(cap: &DataBaseCap, self: &mut Database, ctx: &mut TxContext) : Coin<SUI> {
+        assert!(cap.`for` == object::id(self) , ErrInvalidParam);
+        let balance = balance::withdraw_all(&mut self.fee);
+        let coin = coin::from_balance(balance, ctx);
+        coin
+    }
     
 
     fun drop(profile: Profile) {
