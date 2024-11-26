@@ -121,7 +121,7 @@ module profile::profile {
         if (option::is_some<String>(&desc)) {
             profile.desc = option::extract( &mut desc);
         };
-        if (option::is_some<String>(&name)) {
+        if (option::is_some<String>(&avatar)) {
             profile.avatar = option::extract( &mut avatar);
         };
     }
